@@ -8,12 +8,15 @@ import json
 from typing import Dict, Any
 from tabulate import tabulate
 from termcolor import colored
+import requests
+from .vuln_lookup import lookup_vulnerabilities
 
 # Load environment variables
 load_dotenv()
 
 def print_ascii_art():
-    art_path = os.path.join(os.path.dirname(__file__), 'resources', 'ascii_art.txt')
+    # Adjusted to look for resources/ at project root, not inside src/
+    art_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', 'ascii_art.txt')
     try:
         with open(art_path, 'r') as f:
             art = f.read()
@@ -66,7 +69,7 @@ class NetworkAnalyzer:
             str: Formatted table as a string.
         """
         table = []
-        headers = ["Host", "Port", "State", "Service", "Reason", "Version", "Product", "Extra Info"]
+        headers = ["Host", "Port", "State", "Service", "Reason", "Version", "Product", "Extra Info", "Vulnerabilities"]
         row_count = 0
         for host, host_data in scan_results.get('scan', {}).items():
             tcp_ports = host_data.get('tcp', {})
@@ -84,6 +87,9 @@ class NetworkAnalyzer:
                     state_colored = colored(state, 'red')
                 else:
                     state_colored = colored(state, 'yellow')
+                # Vulnerability lookup
+                vulns = lookup_vulnerabilities(product, version)
+                vulns_str = "\n".join(vulns) if vulns else "-"
                 table.append([
                     host,
                     f"{port}/tcp",
@@ -92,7 +98,8 @@ class NetworkAnalyzer:
                     reason,
                     version,
                     product,
-                    extrainfo
+                    extrainfo,
+                    vulns_str
                 ])
                 row_count += 1
                 if row_count >= max_rows:
