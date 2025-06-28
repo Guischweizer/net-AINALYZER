@@ -11,6 +11,8 @@ The author is not responsible for any misuse of this tool. Use it only in contro
 # Network Analyzer
 
 A tool to analyze network configurations and provide insights.
+![preview-nmap-tunado](https://github.com/user-attachments/assets/d835df6a-bbba-4fe2-9011-835cb813ea05)
+
 
 ## How to Run
 
