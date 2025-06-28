@@ -1,3 +1,13 @@
+---
+
+⚠️ **Legal Notice**
+
+This project is intended exclusively for educational, laboratory, and CTF (Capture The Flag) purposes. Using this software to scan networks or systems without explicit authorization is strictly prohibited and may be illegal.
+
+The author is not responsible for any misuse of this tool. Use it only in controlled environments, on systems you own, or with explicit permission from the system owner.
+
+---
+
 # Network Analyzer
 
 A tool to analyze network configurations and provide insights.
@@ -5,18 +15,18 @@ A tool to analyze network configurations and provide insights.
 ## How to Run
 
 1. (Recommended) Create and activate a virtual environment:
-   ```bash
+   ```zsh
    python3 -m venv venv
    source venv/bin/activate
    ```
 
 2. Install dependencies:
-   ```bash
+   ```zsh
    pip install -r requirements.txt
    ```
 
 3. Ensure you have nmap installed on your system:
-   ```bash
+   ```zsh
    sudo apt-get install nmap  # Debian/Ubuntu
    # or
    sudo dnf install nmap      # Fedora
@@ -30,6 +40,6 @@ A tool to analyze network configurations and provide insights.
    ```
 
 5. Run the script:
-   ```bash
+   ```zsh
    python network_analyzer.py
    ```
