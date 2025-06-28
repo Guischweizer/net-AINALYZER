@@ -19,6 +19,21 @@ A tool to analyze network configurations and provide insights.
 ![image](https://github.com/user-attachments/assets/5759e0e0-e62b-4504-81cb-dfb5f1cf8c9e)
 
 
+## Project Structure
+
+- `main.py` — Entry point. Runs the analyzer.
+- `src/network_analyzer.py` — Main logic for scanning and analysis.
+- `src/vuln_lookup.py` — Looks up vulnerabilities for detected services.
+- `resources/` — Contains ASCII art and other static resources.
+
+## Features
+
+- Nmap-based network scanning (custom arguments supported)
+- AI-powered security analysis (Google Gemini)
+- Dynamic, detailed, and colored scan result tables
+- Automatic vulnerability lookup for detected services (via Vulners API)
+- Graceful error and interruption handling
+
 ## How to Run
 
 1. (Recommended) Create and activate a virtual environment:
@@ -42,11 +57,14 @@ A tool to analyze network configurations and provide insights.
    ```
 
 4. Add your Gemini API key to a `.env` file in the project root:
+   - Go to https://aistudio.google.com/app/apikey and log in with your Google account.
+   - Click "Create API key" and follow the instructions.
+   - Copy your API key and add it to a `.env` file as shown below:
    ```
    GEMINI_API_KEY=your_api_key_here
    ```
 
-5. Run the script:
+5. Run the tool:
    ```zsh
-   python network_analyzer.py
+   python main.py
    ```
