@@ -12,6 +12,15 @@ from termcolor import colored
 # Load environment variables
 load_dotenv()
 
+def print_ascii_art():
+    art_path = os.path.join(os.path.dirname(__file__), 'resources', 'ascii_art.txt')
+    try:
+        with open(art_path, 'r') as f:
+            art = f.read()
+        print(art)
+    except Exception as e:
+        print("[!] Could not load ASCII art:", e)
+
 class NetworkAnalyzer:
     def __init__(self):
         # Initialize Gemini API
@@ -99,6 +108,7 @@ class NetworkAnalyzer:
             return f"Error analyzing results: {e}"
 
 async def main():
+    print_ascii_art()
     analyzer = NetworkAnalyzer()
     try:
         target = input("Enter target IP address or hostname to scan: ")
