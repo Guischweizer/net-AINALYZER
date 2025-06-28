@@ -15,4 +15,9 @@ async def main():
         print("\nOperation cancelled by user. Exiting.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[!] Program interrupted by user. Exiting cleanly.")
+    except Exception as e:
+        print(f"[!] Unexpected error: {e}")

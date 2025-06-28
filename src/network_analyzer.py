@@ -42,21 +42,29 @@ class NetworkAnalyzer:
         """
         import shlex
         safe_args = arguments.strip()
-        # Basic validation: disallow dangerous shell metacharacters
         forbidden = [';', '|', '&', '`', '$', '>', '<']
+        if not target:
+            print("[!] Error: Target cannot be empty.")
+            return {"error": "Target cannot be empty."}
         if any(char in safe_args for char in forbidden):
-            print("Error: Unsafe characters detected in nmap arguments.")
+            print("[!] Error: Unsafe characters detected in nmap arguments.")
             return {"error": "Unsafe nmap arguments."}
         try:
             print(f"Starting scan of {target} with arguments: {safe_args} ...")
             self.nm.scan(hosts=target, arguments=safe_args)
+            if not self.nm.all_hosts():
+                print("[!] No hosts found. The scan may have failed or the target is unreachable.")
+                return {"error": "No hosts found. Scan may have failed or target is unreachable."}
             return self.nm.analyse_nmap_xml_scan()
+        except nmap.PortScannerError as nmap_err:
+            print(f"[!] Nmap error: {nmap_err}")
+            return {"error": f"Nmap error: {nmap_err}"}
         except KeyboardInterrupt:
-            print("\nScan interrupted by user (Ctrl+C). Exiting gracefully.")
+            print("\n[!] Scan interrupted by user (Ctrl+C). Exiting gracefully.")
             return {"error": "Scan interrupted by user."}
         except Exception as e:
-            print(f"Error during scan: {e}")
-            return {"error": str(e)}
+            print(f"[!] Unexpected error during scan: {e}")
+            return {"error": f"Unexpected error: {e}"}
 
     def format_nmap_table(self, scan_results: Dict[str, Any], max_rows: int = 30) -> str:
         """
@@ -68,6 +76,8 @@ class NetworkAnalyzer:
         Returns:
             str: Formatted table as a string.
         """
+        if not scan_results or 'error' in scan_results:
+            return f"[!] Error: {scan_results.get('error', 'Unknown error.') if scan_results else 'No scan results.'}"
         table = []
         headers = ["Host", "Port", "State", "Service", "Reason", "Version", "Product", "Extra Info", "Vulnerabilities"]
         row_count = 0
@@ -139,6 +149,8 @@ class NetworkAnalyzer:
         Returns:
             str: AI analysis of the scan results
         """
+        if not scan_results or 'error' in scan_results:
+            return f"[!] Error: {scan_results.get('error', 'No scan results to analyze.')}"
         prompt = f"""
         Analyze the following network scan results and provide a detailed security assessment:
         - Identify potential vulnerabilities
