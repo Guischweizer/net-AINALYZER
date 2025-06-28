@@ -55,12 +55,18 @@ class NetworkAnalyzer:
             print(f"Error during scan: {e}")
             return {"error": str(e)}
 
-    def format_nmap_table(self, scan_results: Dict[str, Any]) -> str:
+    def format_nmap_table(self, scan_results: Dict[str, Any], max_rows: int = 30) -> str:
         """
-        Format nmap scan results as a colored table.
+        Format nmap scan results as a colored table. Dynamically adapts to the scan content and limits output size.
+        Args:
+            scan_results: The dictionary with nmap results.
+            max_rows: Maximum number of rows to display in the table.
+        Returns:
+            str: Formatted table as a string.
         """
         table = []
         headers = ["Host", "Port", "State", "Service"]
+        row_count = 0
         for host, host_data in scan_results.get('scan', {}).items():
             for proto in host_data.get('tcp', {}):
                 port_data = host_data['tcp'][proto]
@@ -75,9 +81,18 @@ class NetworkAnalyzer:
                 else:
                     state_colored = colored(state, 'yellow')
                 table.append([host, port, state_colored, service])
+                row_count += 1
+                if row_count >= max_rows:
+                    break
+            if row_count >= max_rows:
+                break
         if not table:
             return "No open ports found."
-        return tabulate(table, headers, tablefmt="fancy_grid")
+        table_str = tabulate(table, headers, tablefmt="fancy_grid")
+        total_rows = sum(len(host_data.get('tcp', {})) for host_data in scan_results.get('scan', {}).values())
+        if total_rows > max_rows:
+            table_str += f"\n... Output truncated. Showing first {max_rows} of {total_rows} results. ..."
+        return table_str
 
     def analyze_results(self, scan_results: Dict[str, Any]) -> str:
         """
@@ -101,7 +116,7 @@ class NetworkAnalyzer:
         """
 
         try:
-            nmap_table = self.format_nmap_table(scan_results)
+            nmap_table = self.format_nmap_table(scan_results, max_rows=30)
             response = self.model.generate_content(prompt)
             return f"{nmap_table}\n\n{response.text}"
         except Exception as e:
