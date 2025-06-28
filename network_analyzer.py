@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 import json
 from typing import Dict, Any
+from tabulate import tabulate
+from termcolor import colored
 
 # Load environment variables
 load_dotenv()
@@ -14,7 +16,7 @@ class NetworkAnalyzer:
     def __init__(self):
         # Initialize Gemini API
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-        self.model = genai.GenerativeModel('models/gemini-2.5-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.nm = nmap.PortScanner()
 
     def scan_network(self, target: str, arguments: str = '-sV -sS -T4') -> Dict[str, Any]:
@@ -36,7 +38,31 @@ class NetworkAnalyzer:
             print(f"Error during scan: {e}")
             return {}
 
-    async def analyze_results(self, scan_results: Dict[str, Any]) -> str:
+    def format_nmap_table(self, scan_results: Dict[str, Any]) -> str:
+        """
+        Format nmap scan results as a colored table.
+        """
+        table = []
+        headers = ["Host", "Port", "State", "Service"]
+        for host, host_data in scan_results.get('scan', {}).items():
+            for proto in host_data.get('tcp', {}):
+                port_data = host_data['tcp'][proto]
+                port = proto
+                state = port_data.get('state', '-')
+                service = port_data.get('name', '-')
+                # Colorize state
+                if state == 'open':
+                    state_colored = colored(state, 'green')
+                elif state == 'closed':
+                    state_colored = colored(state, 'red')
+                else:
+                    state_colored = colored(state, 'yellow')
+                table.append([host, port, state_colored, service])
+        if not table:
+            return "No open ports found."
+        return tabulate(table, headers, tablefmt="fancy_grid")
+
+    def analyze_results(self, scan_results: Dict[str, Any]) -> str:
         """
         Analyze scan results using Gemini AI
         
@@ -58,8 +84,9 @@ class NetworkAnalyzer:
         """
 
         try:
-            response = await self.model.generate_content(prompt)
-            return response.text
+            nmap_table = self.format_nmap_table(scan_results)
+            response = self.model.generate_content(prompt)
+            return f"{nmap_table}\n\n{response.text}"
         except Exception as e:
             return f"Error analyzing results: {e}"
 
@@ -73,7 +100,7 @@ async def main():
     scan_results = analyzer.scan_network(target)
     
     # Analyze results with Gemini
-    analysis = await analyzer.analyze_results(scan_results)
+    analysis = analyzer.analyze_results(scan_results)
     
     print("\n=== AI Analysis ===")
     print(analysis)
