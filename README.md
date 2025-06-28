@@ -16,7 +16,7 @@ The author is not responsible for any misuse of this tool. Use it only in contro
 
 
 A tool to analyze network configurations and provide insights.
-![preview-nmap-tunado](https://github.com/user-attachments/assets/d835df6a-bbba-4fe2-9011-835cb813ea05)
+![image](https://github.com/user-attachments/assets/5759e0e0-e62b-4504-81cb-dfb5f1cf8c9e)
 
 
 ## How to Run
