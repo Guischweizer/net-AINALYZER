@@ -21,22 +21,30 @@ class NetworkAnalyzer:
 
     def scan_network(self, target: str, arguments: str = '-sV -sS -T4') -> Dict[str, Any]:
         """
-        Perform a network scan using nmap
-        
+        Perform a network scan using nmap with improved accuracy, safety, and error handling.
         Args:
             target: IP address or hostname to scan
-            arguments: nmap arguments to use
-        
+            arguments: nmap arguments to use (validated)
         Returns:
-            Dict containing scan results
+            Dict containing scan results or error info
         """
+        import shlex
+        safe_args = arguments.strip()
+        # Basic validation: disallow dangerous shell metacharacters
+        forbidden = [';', '|', '&', '`', '$', '>', '<']
+        if any(char in safe_args for char in forbidden):
+            print("Error: Unsafe characters detected in nmap arguments.")
+            return {"error": "Unsafe nmap arguments."}
         try:
-            print(f"Starting scan of {target}...")
-            self.nm.scan(target, arguments=arguments)
+            print(f"Starting scan of {target} with arguments: {safe_args} ...")
+            self.nm.scan(hosts=target, arguments=safe_args)
             return self.nm.analyse_nmap_xml_scan()
+        except KeyboardInterrupt:
+            print("\nScan interrupted by user (Ctrl+C). Exiting gracefully.")
+            return {"error": "Scan interrupted by user."}
         except Exception as e:
             print(f"Error during scan: {e}")
-            return {}
+            return {"error": str(e)}
 
     def format_nmap_table(self, scan_results: Dict[str, Any]) -> str:
         """
@@ -92,18 +100,15 @@ class NetworkAnalyzer:
 
 async def main():
     analyzer = NetworkAnalyzer()
-    
-    # Get target from user
-    target = input("Enter target IP address or hostname to scan: ")
-    
-    # Perform scan
-    scan_results = analyzer.scan_network(target)
-    
-    # Analyze results with Gemini
-    analysis = analyzer.analyze_results(scan_results)
-    
-    print("\n=== AI Analysis ===")
-    print(analysis)
+    try:
+        target = input("Enter target IP address or hostname to scan: ")
+        arguments = input("Enter nmap arguments (default: -sV -sS -T4): ") or '-sV -sS -T4'
+        scan_results = analyzer.scan_network(target, arguments)
+        analysis = analyzer.analyze_results(scan_results)
+        print("\n=== AI Analysis ===")
+        print(analysis)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user. Exiting.")
 
 if __name__ == "__main__":
     import asyncio
