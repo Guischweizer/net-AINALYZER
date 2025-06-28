@@ -8,7 +8,12 @@ The author is not responsible for any misuse of this tool. Use it only in contro
 
 ---
 
+![Screenshot_2025-06-28_02-02-24](https://github.com/user-attachments/assets/347cc686-483c-4987-bed0-1214201417e4)
+
+---
+
 # Network Analyzer
+
 
 A tool to analyze network configurations and provide insights.
 ![preview-nmap-tunado](https://github.com/user-attachments/assets/d835df6a-bbba-4fe2-9011-835cb813ea05)
