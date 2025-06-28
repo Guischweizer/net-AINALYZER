@@ -62,7 +62,10 @@ A tool to analyze network configurations and provide insights.
    - Copy your API key and add it to a `.env` file as shown below:
    ```
    GEMINI_API_KEY=your_api_key_here
+   # (Optional) To use a different Gemini model:
+   GEMINI_MODEL=gemini-1.5-pro
    ```
+   By default, the tool uses `gemini-1.5-flash` if `GEMINI_MODEL` is not set.
 
 5. Run the tool:
    ```zsh

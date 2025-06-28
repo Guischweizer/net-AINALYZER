@@ -28,7 +28,8 @@ class NetworkAnalyzer:
     def __init__(self):
         # Initialize Gemini API
         genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        model_name = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+        self.model = genai.GenerativeModel(model_name)
         self.nm = nmap.PortScanner()
 
     def scan_network(self, target: str, arguments: str = '-sV -sS -T4') -> Dict[str, Any]:
