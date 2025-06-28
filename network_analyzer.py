@@ -58,6 +58,7 @@ class NetworkAnalyzer:
     def format_nmap_table(self, scan_results: Dict[str, Any], max_rows: int = 30) -> str:
         """
         Format nmap scan results as a colored table. Dynamically adapts to the scan content and limits output size.
+        Shows detailed info: port, state, service, reason, version, product, extra info, OS, CPE, etc.
         Args:
             scan_results: The dictionary with nmap results.
             max_rows: Maximum number of rows to display in the table.
@@ -65,14 +66,17 @@ class NetworkAnalyzer:
             str: Formatted table as a string.
         """
         table = []
-        headers = ["Host", "Port", "State", "Service"]
+        headers = ["Host", "Port", "State", "Service", "Reason", "Version", "Product", "Extra Info"]
         row_count = 0
         for host, host_data in scan_results.get('scan', {}).items():
-            for proto in host_data.get('tcp', {}):
-                port_data = host_data['tcp'][proto]
-                port = proto
+            tcp_ports = host_data.get('tcp', {})
+            for port, port_data in tcp_ports.items():
                 state = port_data.get('state', '-')
                 service = port_data.get('name', '-')
+                reason = port_data.get('reason', '-')
+                version = port_data.get('version', '-')
+                product = port_data.get('product', '-')
+                extrainfo = port_data.get('extrainfo', '-')
                 # Colorize state
                 if state == 'open':
                     state_colored = colored(state, 'green')
@@ -80,7 +84,16 @@ class NetworkAnalyzer:
                     state_colored = colored(state, 'red')
                 else:
                     state_colored = colored(state, 'yellow')
-                table.append([host, port, state_colored, service])
+                table.append([
+                    host,
+                    f"{port}/tcp",
+                    state_colored,
+                    service,
+                    reason,
+                    version,
+                    product,
+                    extrainfo
+                ])
                 row_count += 1
                 if row_count >= max_rows:
                     break
@@ -89,6 +102,21 @@ class NetworkAnalyzer:
         if not table:
             return "No open ports found."
         table_str = tabulate(table, headers, tablefmt="fancy_grid")
+        # Service Info (OS, CPE, etc)
+        service_info = []
+        for host, host_data in scan_results.get('scan', {}).items():
+            os_info = host_data.get('osmatch', [])
+            if os_info:
+                service_info.append(f"OS Guess: {os_info[0].get('name', '-')}")
+            cpe = host_data.get('osclass', [{}])[0].get('cpe', '-') if host_data.get('osclass') else '-'
+            if cpe != '-':
+                service_info.append(f"CPE: {cpe}")
+            # Sometimes service info is in hostscript
+            if 'hostscript' in host_data:
+                for script in host_data['hostscript']:
+                    service_info.append(f"{script.get('id', '-')}: {script.get('output', '-')}")
+        if service_info:
+            table_str += "\nService Info: " + "; ".join(service_info)
         total_rows = sum(len(host_data.get('tcp', {})) for host_data in scan_results.get('scan', {}).values())
         if total_rows > max_rows:
             table_str += f"\n... Output truncated. Showing first {max_rows} of {total_rows} results. ..."
